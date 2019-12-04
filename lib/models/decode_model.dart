@@ -1,6 +1,6 @@
 class DecodeType{
  String type;
- String payload;
+ dynamic payload;
 
  DecodeType({this.type,this.payload});
 }

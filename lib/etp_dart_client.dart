@@ -21,13 +21,18 @@ DecodeType decodeEvent(String data) {
   if (parts.length < 2) {
     throw "invalid message received. Splitter || expected";
   }
-  print('Parts' + '${parts[2]}');
-  var payload = '';
-  if (parts[2] != null) {
-    payload = Codec.unmarshal(parts[2]);
-    print('UNMARSHAL $payload');
+  if (parts.length > 2) {
+    String str = parts[2];
+    for (var i = 2; i < parts.length; i++) {
+      str = str + bodySplitter + parts[i];
+    }
   }
-  //print('DECODE ${parts[0]} $payload');
+  print('Parts' + '${parts[2]}');
+  dynamic payload;
+  if (parts[2] != '') {
+    payload = Codec.unmarshal(parts[2]);
+    print('UNMARSH $payload');
+  }
   DecodeType obj = DecodeType(type: parts[0], payload: payload);
   return obj;
 }
@@ -36,23 +41,40 @@ class EtpClient {
   final String url;
   WebSocket _ws;
 
+  Function onConn = () => {};
+  Function onDis = () => {};
+  Function onErr = () => {};
+
   EtpClient({this.url});
+
+  EtpClient onConnection(Function f) {
+    onConn = f;
+    return this;
+  }
+
+  EtpClient onDisconnect(Function f(dynamic event)) {
+    onDis = f;
+    return this;
+  }
+
+  EtpClient onError(Function f(Error e)) {
+    onErr = f;
+    return this;
+  }
 
   void connect() {
     String url = this.url;
     WebSocket.connect(url.toString()).then((webSocket) {
       print('connect');
       _ws = webSocket;
-      //webSocket.add('test string');
+      webSocket.add('test string');
       webSocket.listen((data) {
         print('Data ' + '$data');
-        decodeEvent('12||0||${{"Usrname":"admin"}}');
+        decodeEvent('12||0||{"Usrname":"admin"}');
       }, onDone: () {
-        print('done');
-      }, onError: (error) {
-        print('error' + '$error');
+        print('Closed');
       });
-    }).catchError((error) => print('error $error'));
+    }).catchError((error) => print('$error'));
   }
 
   void close() {
@@ -66,7 +88,7 @@ class EtpClient {
   emit(String type, dynamic payload) {
     var test = new Map();
     test['Usrname'] = 'admin';
-    test['Password'] = ['admin@123','qwe','rerer'];
+    test['Password'] = ['admin@123', 'qwe', 'rerer'];
     if (_ws != null) {
       String data = encodeEvent(type, test);
     } else {
