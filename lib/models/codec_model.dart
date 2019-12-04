@@ -1,9 +1,11 @@
 import 'dart:convert';
-class Codec{
+
+class Codec {
   static String marshal(dynamic data) {
-  return jsonEncode(data);
+    return jsonEncode(data);
   }
+
   static dynamic unmarshal(String data) {
-  return jsonDecode(data);
+    return jsonDecode(data);
   }
 }

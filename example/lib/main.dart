@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/status.dart' as status;
 import 'dart:async';
-void main(){
-  EtpClient channel = EtpClient(url:'wss://echo.websocket.org');
+
+void main() {
+  EtpClient channel = EtpClient(url: 'wss://echo.websocket.org');
   channel.connect();
+  channel.emit('12', 'qwer');
 }
 
 class MyApp extends StatelessWidget {

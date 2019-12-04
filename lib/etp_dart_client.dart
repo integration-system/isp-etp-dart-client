@@ -2,18 +2,18 @@ library etp_dart_client;
 
 import 'package:etp_dart_client/models/codec_model.dart';
 import 'package:etp_dart_client/models/decode_model.dart';
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/status.dart' as status;
-import 'dart:async';
+import 'dart:io';
 
 const bodySplitter = '||';
 
 String encodeEvent(String type, dynamic payload) {
-  String data = "";
-  if (payload) {
+  String data = "data";
+  if (payload != null) {
     data = Codec.marshal(payload);
   }
-  return type + bodySplitter + data;
+  String message = type + bodySplitter + '0' + bodySplitter + data;
+  print('Сообщение $message');
+  return message;
 }
 
 DecodeType decodeEvent(String data) {
@@ -21,39 +21,56 @@ DecodeType decodeEvent(String data) {
   if (parts.length < 2) {
     throw "invalid message received. Splitter || expected";
   }
+  print('Parts' + '${parts[2]}');
   var payload = '';
   if (parts[2] != null) {
     payload = Codec.unmarshal(parts[2]);
+    print('UNMARSHAL $payload');
   }
+  //print('DECODE ${parts[0]} $payload');
   DecodeType obj = DecodeType(type: parts[0], payload: payload);
   return obj;
 }
 
 class EtpClient {
   final String url;
-  IOWebSocketChannel _ws;
+  WebSocket _ws;
 
   EtpClient({this.url});
 
   void connect() {
     String url = this.url;
-      IOWebSocketChannel ws = IOWebSocketChannel.connect(url);
-      ws.stream.listen((data) {
+    WebSocket.connect(url.toString()).then((webSocket) {
+      print('connect');
+      _ws = webSocket;
+      //webSocket.add('test string');
+      webSocket.listen((data) {
         print('Data ' + '$data');
+        decodeEvent('12||0||${{"Usrname":"admin"}}');
       }, onDone: () {
-        print('done ' + '${ws.closeCode}');
+        print('done');
       }, onError: (error) {
-        print('error'+ '$error');
+        print('error' + '$error');
       });
-      ws.sink.add('teste test');
-      ws.sink.close(status.goingAway);
+    }).catchError((error) => print('error $error'));
   }
 
-  void closeSocket() {
-    _ws.sink.close(status.goingAway);
+  void close() {
+    if (_ws != null) {
+      _ws.close(1000, 'test');
+      _ws = null;
+    }
+    throw ('WebSocket is NULL');
   }
 
-  Future<dynamic> emit(String type, dynamic payload) {
-    return Future.error("Connection not initialized");
+  emit(String type, dynamic payload) {
+    var test = new Map();
+    test['Usrname'] = 'admin';
+    test['Password'] = ['admin@123','qwe','rerer'];
+    if (_ws != null) {
+      String data = encodeEvent(type, test);
+    } else {
+      String data = encodeEvent(type, test);
+    }
   }
 }
