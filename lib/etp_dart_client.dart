@@ -3,9 +3,18 @@ library etp_dart_client;
 import 'package:etp_dart_client/handlers.dart';
 import 'package:etp_dart_client/models/codec_model.dart';
 import 'package:etp_dart_client/models/decode_model.dart';
+import 'package:etp_dart_client/models/options_model.dart';
 import 'dart:io';
 
 const bodySplitter = '||';
+
+String encodeGetParams(Map<String, dynamic> params) {
+  var uri = params.entries
+      .map((kv) =>
+          "${Uri.decodeComponent(kv.key)}=${Uri.encodeComponent(kv.value)}")
+      .join("&");
+  return uri.toString();
+}
 
 String encodeEvent(String type, dynamic payload) {
   String data = "data";
@@ -37,10 +46,11 @@ DecodeType decodeEvent(String data) {
 
 class EtpClient {
   final String url;
+  Options options;
   WebSocket _ws;
   Handlers handlers = Handlers();
 
-  EtpClient({this.url});
+  EtpClient({this.url, this.options});
 
   Function onConn = () => {};
   Function onDis = () => {};
@@ -63,15 +73,19 @@ class EtpClient {
 
   EtpClient connect() {
     String url = this.url;
+    if (options != null && options.params.isNotEmpty) {
+      url = url + '?' + encodeGetParams(options.params);
+      print('url--> $url');
+    }
     WebSocket.connect(url.toString()).then((webSocket) {
       _ws = webSocket;
       onConn();
       webSocket.listen((payload) {
         var data = decodeEvent(payload);
-         Function f = handlers.get(data.type);
-         if(f!= null){
-           f(data.payload);
-         }
+        Function f = handlers.get(data.type);
+        if (f != null) {
+          f(data.payload);
+        }
       }, onDone: () {
         onDis();
       });
@@ -81,7 +95,7 @@ class EtpClient {
 
   void close() {
     if (_ws != null) {
-      _ws.close(1000, 'test');
+      _ws.close(1000, 'channel are closed');
       _ws = null;
     }
     throw WebSocketException('WebSocket is NULL');

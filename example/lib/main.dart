@@ -1,11 +1,15 @@
 import 'package:etp_dart_client/etp_dart_client.dart';
 import 'package:flutter/material.dart';
+import 'package:etp_dart_client/models/options_model.dart';
 
 void main() {
   var test = new Map();
   test['Usrname'] = 'admin';
   test['Password'] = ['admin@123', 'qwe', 'rerer'];
-  EtpClient channel = EtpClient(url: 'wss://echo.websocket.org');
+  EtpClient channel = EtpClient(
+      url: 'wss://echo.websocket.org',
+      options: Options(
+          params: {'token': '1123123123', 'test_params': 'test_string'}));
   channel.onConnect(() {
     print('connect onConnect');
     channel.emit('test_event', test);
@@ -15,7 +19,6 @@ void main() {
   });
 
   channel.connect();
-  channel.close();
 }
 
 class MyApp extends StatelessWidget {
