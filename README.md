@@ -9,9 +9,6 @@
 import 'package:etp_dart_client/etp_dart_client.dart';
 
 void main() {
-  var test = new Map();
-  test['Usrname'] = 'admin';
-  test['Password'] = 'qwerty';
   EtpClient channel = EtpClient(
       url: 'wss://echo.websocket.org',
       options: Options(
@@ -28,8 +25,8 @@ void main() {
     print('close event');
   });
 
-  channel.on('test_event', (test) { //subscribe to any custom events
-    print('test_event => $test');
+  channel.on('test_event', (payload) { //subscribe to any custom events
+    print('test_event => $payload');
   });
   channel.connect();  // call to open connection
 
