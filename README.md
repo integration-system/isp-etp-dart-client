@@ -1,20 +1,36 @@
 
 # etp_dart_client
 
-A new Flutter package project.
+- Simple event transport protocol client for Flutter(Dart) for [server](https://github.com/integration-system/isp-etp-go).
+- Design API inspired by [socket.io](https://pub.dev/packages/socket_io_client).
+- event payload marshaling/unmarshaling to/from `json`
 
-## Getting Started
+```dart
+import 'package:etp_dart_client/etp_dart_client.dart';
 
-This project is a starting point for a Dart
+void main() {
+  EtpClient channel = EtpClient(
+      url: 'wss://echo.websocket.org',
+      options: Options(
+      params: {'token': 'token'}//will add to GET params in initial request
+      )); 
+  channel.onConnect(() { //call every time when connection successfully established
+    print('connect');
+    channel.emit('test_event', {"some_payload":"payload"});
+  });
+  channel.onError((error) {  //call every time when error occurred while connecting or data deserializing
+    print('$error');
+  });
+  channel.onDisconnect(() { //call every time when connection could not established or closed
+    print('close event');
+  });
 
-[package](https://flutter.dev/developing-packages/),
+  channel.on('test_event', (payload) { //subscribe to any custom events
+    print('test_event => $payload');
+  });
+  channel.connect();  // call to open connection
 
-a library module containing code that can be shared easily across multiple Flutter or Dart projects
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
+channel.close(); //call to close connection, you can provides two params: num code, String reason
+}
 
-# isp-etp-dart-client
-
->>>>>>> f79722e7cecad54d05eeb57980287392be1c5b09
+```
