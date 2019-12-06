@@ -16,7 +16,7 @@ void main() {
       )); 
   channel.onConnect(() { //call every time when connection successfully established
     print('connect');
-    channel.emit('test_event', test);
+    channel.emit('test_event', {"some_payload":"payload"});
   });
   channel.onError((error) {  //call every time when error occurred while connecting or data deserializing
     print('$error');
