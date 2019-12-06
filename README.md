@@ -1,7 +1,7 @@
 
 # etp_dart_client
 
-- Simple event transport protocol client for Dart for [server](https://github.com/integration-system/isp-etp-go).
+- Simple event transport protocol client for Flutter(Dart) for [server](https://github.com/integration-system/isp-etp-go).
 - Design API inspired by [socket.io](https://pub.dev/packages/socket_io_client).
 - event payload marshaling/unmarshaling to/from `json`
 
