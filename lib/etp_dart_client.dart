@@ -3,17 +3,23 @@ library etp_dart_client;
 import 'package:etp_dart_client/handlers.dart';
 import 'package:etp_dart_client/models/codec_model.dart';
 import 'package:etp_dart_client/models/decode_model.dart';
-import 'package:etp_dart_client/models/options_model.dart';
 import 'dart:io';
+
+class Options {
+  Map<String, dynamic> params;
+  Codec codec;
+
+  Options({this.params, this.codec});
+}
 
 const bodySplitter = '||';
 
 String encodeGetParams(Map<String, dynamic> params) {
-  var uri = params.entries
+  var url = params.entries
       .map((kv) =>
           "${Uri.decodeComponent(kv.key)}=${Uri.encodeComponent(kv.value)}")
       .join("&");
-  return uri.toString();
+  return url;
 }
 
 String encodeEvent(String type, dynamic payload) {
@@ -61,12 +67,12 @@ class EtpClient {
     return this;
   }
 
-  EtpClient onDisconnect(Function f(dynamic event)) {
+  EtpClient onDisconnect(Function f) {
     onDis = f;
     return this;
   }
 
-  EtpClient onError(Function f(Error e)) {
+  EtpClient onError(Function f) {
     onErr = f;
     return this;
   }
@@ -75,7 +81,6 @@ class EtpClient {
     String url = this.url;
     if (options != null && options.params.isNotEmpty) {
       url = url + '?' + encodeGetParams(options.params);
-      print('url--> $url');
     }
     WebSocket.connect(url.toString()).then((webSocket) {
       _ws = webSocket;
@@ -93,18 +98,14 @@ class EtpClient {
     return this;
   }
 
-  void close() {
+  void close(num code, String reason) {
     if (_ws != null) {
-      _ws.close(1000, 'channel are closed');
+      _ws.close(code, reason);
       _ws = null;
     }
-    throw WebSocketException('WebSocket is NULL');
   }
 
   emit(String type, dynamic payload) {
-    var test = new Map();
-    test['Usrname'] = 'admin';
-    test['Password'] = ['admin@123', 'qwe', 'rerer'];
     if (_ws != null) {
       String data = encodeEvent(type, payload);
       _ws.add(data);

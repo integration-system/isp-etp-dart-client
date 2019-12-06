@@ -1,16 +1,38 @@
 # example
 
-A new Flutter project.
+- Simple event transport protocol client for Dart for [server](https://github.com/integration-system/isp-etp-go).
+- Design API inspired by [socket.io](https://pub.dev/packages/socket_io_client).
+- event payload marshaling/unmarshaling to/from `json`
 
-## Getting Started
+```dart
+import 'package:etp_dart_client/etp_dart_client.dart';
 
-This project is a starting point for a Flutter application.
+void main() {
+  var test = new Map();
+  test['Usrname'] = 'admin';
+  test['Password'] = 'qwerty';
+  EtpClient channel = EtpClient(
+      url: 'wss://echo.websocket.org',
+      options: Options(
+      params: {'token': 'token'}//will add to GET params in initial request
+      )); 
+  channel.onConnect(() { //call every time when connection successfully established
+    print('connect');
+    channel.emit('test_event', test);
+  });
+  channel.onError((error) {  //call every time when error occurred while connecting or data deserializing
+    print('$error');
+  });
+  channel.onDisconnect(() { //call every time when connection could not established or closed
+    print('close event');
+  });
 
-A few resources to get you started if this is your first Flutter project:
+  channel.on('test_event', (test) { //subscribe to any custom events
+    print('test_event => $test');
+  });
+  channel.connect();  // call to open connection
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+channel.close(); //call to close connection, you can provides two params: num code, String reason
+}
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```
